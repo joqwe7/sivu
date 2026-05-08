@@ -272,92 +272,140 @@
 
     <script>
         const LOCATION = "Jyväskylä";
-        // Käytetään proxya kiertämään CORS-esto
-        const FMI_URL = `https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=${LOCATION}&parameters=t2m,rh,ws_10min,p,vis&timesteps=1`;
-        const PROXY_URL = `https://allorigins.win/api/raw?url=${encodeURIComponent(FMI_URL)}`;
+        const FMI_ENDPOINT = "https://opendata.fmi.fi/wfs";
+        const FMI_PARAMETERS = ["t2m", "rh", "ws_10min", "p", "vis"];
 
-        async function fetchWeatherData() {
-            try {
-                const response = await fetch(PROXY_URL);
-                if (!response.ok) throw new Error("Yhteysvirhe");
-                
-                const xmlText = await response.text();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        function buildFmiUrl() {
+            const params = new URLSearchParams({
+                service: "WFS",
+                version: "2.0.0",
+                request: "getFeature",
+                storedquery_id: "fmi::observations::weather::multipointcoverage",
+                place: LOCATION,
+                parameters: FMI_PARAMETERS.join(","),
+                timesteps: "1"
+            });
 
-                // Tarkistetaan XML-parsintavirheet
-                if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-                    throw new Error("XML-parsintavirhe");
-                }
-
-                // FMI:n datasta etsitään kohta, jossa arvot ovat listana
-                const dataBlock = xmlDoc.getElementsByTagName("gml:doubleOrNilReasonTupleList")[0];
-                
-                if (dataBlock) {
-                    const values = dataBlock.textContent.trim().split(/\s+/);
-                    
-                    if (values.length >= 5) {
-                        // Arvot järjestyksessä: lämpötila, kosteus, tuuli, paine, näkyvyys
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('weather-content').style.display = 'block';
-                        document.getElementById('weather-grid').style.display = 'grid';
-                        
-                        document.getElementById('temperature').innerText = parseFloat(values[0]).toFixed(1) + "°C";
-                        document.getElementById('temp-max').innerText = parseFloat(values[0]).toFixed(1) + "°C";
-                        document.getElementById('temp-min').innerText = parseFloat(values[0]).toFixed(1) + "°C";
-                        document.getElementById('humidity').innerText = parseFloat(values[1]).toFixed(0) + "%";
-                        document.getElementById('wind-speed').innerText = parseFloat(values[2]).toFixed(1) + " m/s";
-                        document.getElementById('pressure').innerText = parseFloat(values[3]).toFixed(0) + " hPa";
-                        document.getElementById('visibility').innerText = (parseFloat(values[4]) / 1000).toFixed(1) + " km";
-                        document.getElementById('weather-condition').innerText = "Partly Cloudy";
-                        
-                        const now = new Date();
-                        const dateStr = now.toLocaleDateString('fi-FI', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                        document.getElementById('update-time').innerText = "Päivitetty: " + dateStr;
-                    } else {
-                        throw new Error("Säädataa ei löytynyt juuri nyt (virheellinen data).");
-                    }
-                } else {
-                    throw new Error("Säädataa ei löytynyt vastauksesta.");
-                }
-            } catch (error) {
-                console.error("Virhe:", error);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('error-message').innerHTML = `<div class="error">Haku epäonnistui: ${error.message}</div>`;
-                showStaticData();
-            }
+            return `${FMI_ENDPOINT}?${params.toString()}`;
         }
 
-        // Show static data when API fails
-        function showStaticData() {
-            document.getElementById('weather-content').style.display = 'block';
-            document.getElementById('weather-grid').style.display = 'grid';
+        function buildProxyUrl(url) {
+            return `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        }
 
-            // Set sample data
-            document.getElementById('temperature').innerText = "17°C";
-            document.getElementById('weather-condition').innerText = "Partly Cloudy";
-            document.getElementById('temp-max').innerText = "19°C";
-            document.getElementById('temp-min').innerText = "12°C";
-            document.getElementById('humidity').innerText = "65%";
-            document.getElementById('wind-speed').innerText = "8 m/s";
-            document.getElementById('pressure').innerText = "1013 hPa";
-            document.getElementById('visibility').innerText = "10 km";
+        function getTupleListNode(xmlDoc) {
+            const gmlNode = xmlDoc.getElementsByTagNameNS(
+                "http://www.opengis.net/gml/3.2",
+                "doubleOrNilReasonTupleList"
+            )[0];
 
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('fi-FI', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+            if (gmlNode) {
+                return gmlNode;
+            }
+
+            return Array.from(xmlDoc.getElementsByTagName("*")).find(
+                (node) => node.localName === "doubleOrNilReasonTupleList"
+            );
+        }
+
+        function parseObservationValues(xmlText) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+
+            if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                throw new Error("The weather service returned invalid XML.");
+            }
+
+            const tupleListNode = getTupleListNode(xmlDoc);
+
+            if (!tupleListNode || !tupleListNode.textContent.trim()) {
+                throw new Error("No current observation values were found in the FMI response.");
+            }
+
+            const values = tupleListNode.textContent.trim().split(/\s+/).map(Number);
+
+            if (values.length < FMI_PARAMETERS.length || values.slice(0, FMI_PARAMETERS.length).some(Number.isNaN)) {
+                throw new Error("The current FMI observation data is incomplete.");
+            }
+
+            return values;
+        }
+
+        function setText(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+
+        function setError(message) {
+            const errorMessage = document.getElementById("error-message");
+            errorMessage.innerHTML = "";
+
+            const errorBox = document.createElement("div");
+            errorBox.className = "error";
+            errorBox.textContent = message;
+            errorMessage.appendChild(errorBox);
+        }
+
+        function clearError() {
+            document.getElementById("error-message").textContent = "";
+        }
+
+        function formatUpdateTime() {
+            return new Date().toLocaleDateString("fi-FI", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
             });
-            document.getElementById('update-time').innerText = "Päivitetty: " + dateStr;
+        }
+
+        function showWeather(values) {
+            const currentTemp = values[0];
+            const humidity = values[1];
+            const windSpeed = values[2];
+            const pressure = values[3];
+            const visibilityKm = values[4] / 1000;
+
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("weather-content").style.display = "block";
+            document.getElementById("weather-grid").style.display = "grid";
+
+            setText("temperature", `${currentTemp.toFixed(1)}°C`);
+            setText("temp-max", `${currentTemp.toFixed(1)}°C`);
+            setText("temp-min", `${currentTemp.toFixed(1)}°C`);
+            setText("humidity", `${humidity.toFixed(0)}%`);
+            setText("wind-speed", `${windSpeed.toFixed(1)} m/s`);
+            setText("pressure", `${pressure.toFixed(0)} hPa`);
+            setText("visibility", `${visibilityKm.toFixed(1)} km`);
+            setText("weather-condition", "Latest FMI observation");
+            setText("update-time", `Updated: ${formatUpdateTime()}`);
+        }
+
+        async function fetchWeatherData() {
+            const loading = document.getElementById("loading");
+
+            loading.style.display = "block";
+            clearError();
+
+            try {
+                const response = await fetch(buildProxyUrl(buildFmiUrl()));
+
+                if (!response.ok) {
+                    throw new Error(`Request failed with status ${response.status}.`);
+                }
+
+                const xmlText = await response.text();
+                const values = parseObservationValues(xmlText);
+
+                showWeather(values);
+            } catch (error) {
+                console.error("Weather fetch failed:", error);
+                loading.style.display = "none";
+                document.getElementById("weather-content").style.display = "none";
+                document.getElementById("weather-grid").style.display = "none";
+                setText("update-time", "Weather data unavailable");
+                setError("Weather data could not be loaded right now. The FMI service or CORS proxy may be temporarily unavailable. Please try again later.");
+            }
         }
 
         // Load weather data when page loads
