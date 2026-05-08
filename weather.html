@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Current weather in Jyväskylä.">
+    <meta name="description" content="Weather in Jyväskylä">
     <title>Weather - Today News</title>
-    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="main.css?v=2">
 </head>
 <body>
     <header class="site-header">
         <h1>Today News</h1>
-        <p>Short news stories and local weather updates.</p>
+        <p>Today News and stories</p>
     </header>
 
     <nav class="site-nav" aria-label="Main navigation">
         <ul>
-            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html">Site</a></li>
             <li><a href="index.html#news">News</a></li>
             <li><a href="index.html#games">Games</a></li>
             <li><a href="weather.html" aria-current="page">Weather</a></li>
@@ -27,7 +27,7 @@
 
         <section class="weather-summary" aria-labelledby="weather-heading">
             <h2 id="weather-heading">Weather in Jyväskylä</h2>
-            <p id="update-time">Loading current weather...</p>
+            <p id="update-time">Loading...</p>
             <div id="error-message" role="status" aria-live="polite"></div>
             <div id="loading" class="loading">Fetching weather data...</div>
 
@@ -60,27 +60,27 @@
             <div class="weather-card">
                 <h3>Wind Speed</h3>
                 <p id="wind-speed">-- km/h</p>
-                <span class="label">10 m above ground</span>
+                <span class="label">Current</span>
             </div>
 
             <div class="weather-card">
                 <h3>Pressure</h3>
                 <p id="pressure">-- hPa</p>
-                <span class="label">Mean sea level</span>
+                <span class="label">Current</span>
             </div>
 
             <div class="weather-card">
                 <h3>Visibility</h3>
                 <p id="visibility">-- km</p>
-                <span class="label">Nearest hourly value</span>
+                <span class="label">Current</span>
             </div>
         </section>
     </main>
 
     <footer class="site-footer">
-        <p>&copy; 2026 Today News. Made by Joona.</p>
+        <p>&copy; 2026 News site. Made by Joona.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html>
