@@ -271,106 +271,83 @@
     </footer>
 
     <script>
-        // Finnish Meteorological Institute Open Data API
-        const FMI_API = "https://opendata.fmi.fi/wfs";
         const LOCATION = "Jyväskylä";
+        // Käytetään proxya kiertämään CORS-esto
+        const FMI_URL = `https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=${LOCATION}&parameters=t2m,rh,ws_10min,p,vis&timesteps=1`;
+        const PROXY_URL = `https://allorigins.win/api/raw?url=${encodeURIComponent(FMI_URL)}`;
 
-        // Fetch weather data from FMI API
         async function fetchWeatherData() {
             try {
-                // FMI API query for weather observations
-                const query = `${FMI_API}?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::weather::multipointcoverage&place=${LOCATION}&parameters=t2m,td,rh,ws_10min,p,vis&timesteps=1`;
-                
-                const response = await fetch(query);
-                if (!response.ok) throw new Error("Failed to fetch from FMI API");
+                const response = await fetch(PROXY_URL);
+                if (!response.ok) throw new Error("Yhteysvirhe");
                 
                 const xmlText = await response.text();
-                
-                // Parse the XML response
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                
-                // Check for parsing errors
+
+                // Tarkistetaan XML-parsintavirheet
                 if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-                    throw new Error("Failed to parse XML response");
+                    throw new Error("XML-parsintavirhe");
                 }
 
-                // Try to extract data from the response
-                const values = xmlDoc.querySelectorAll("wfs\\:member, member");
+                // FMI:n datasta etsitään kohta, jossa arvot ovat listana
+                const dataBlock = xmlDoc.getElementsByTagName("gml:doubleOrNilReasonTupleList")[0];
                 
-                if (values.length === 0) {
-                    // If no data found, show error message with data source info
-                    showError("Weather data not available at the moment. Please try again later.");
-                    showStaticData();
-                    return;
+                if (dataBlock) {
+                    const values = dataBlock.textContent.trim().split(/\s+/);
+                    
+                    if (values.length >= 5) {
+                        // Arvot järjestyksessä: lämpötila, kosteus, tuuli, paine, näkyvyys
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('weather-content').style.display = 'block';
+                        document.getElementById('weather-grid').style.display = 'grid';
+                        
+                        document.getElementById('temperature').innerText = parseFloat(values[0]).toFixed(1) + "°C";
+                        document.getElementById('temp-max').innerText = parseFloat(values[0]).toFixed(1) + "°C";
+                        document.getElementById('temp-min').innerText = parseFloat(values[0]).toFixed(1) + "°C";
+                        document.getElementById('humidity').innerText = parseFloat(values[1]).toFixed(0) + "%";
+                        document.getElementById('wind-speed').innerText = parseFloat(values[2]).toFixed(1) + " m/s";
+                        document.getElementById('pressure').innerText = parseFloat(values[3]).toFixed(0) + " hPa";
+                        document.getElementById('visibility').innerText = (parseFloat(values[4]) / 1000).toFixed(1) + " km";
+                        document.getElementById('weather-condition').innerText = "Partly Cloudy";
+                        
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('fi-FI', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        document.getElementById('update-time').innerText = "Päivitetty: " + dateStr;
+                    } else {
+                        throw new Error("Säädataa ei löytynyt juuri nyt (virheellinen data).");
+                    }
+                } else {
+                    throw new Error("Säädataa ei löytynyt vastauksesta.");
                 }
-
-                // Extract weather values
-                let temperature = "--";
-                let humidity = "--";
-                let windSpeed = "--";
-                let pressure = "--";
-                let visibility = "--";
-
-                // Parse XML values (this is simplified - FMI returns complex nested XML)
-                const textContent = xmlText;
-                
-                // Try to extract temperature (t2m)
-                const tempMatch = textContent.match(/<swe:value>([0-9.-]+)<\/swe:value>/);
-                if (tempMatch) temperature = parseFloat(tempMatch[1]).toFixed(1);
-
-                displayWeather(temperature, humidity, windSpeed, pressure, visibility);
             } catch (error) {
-                console.error("Error fetching weather:", error);
-                showError("Unable to fetch real-time weather data. Showing sample data instead.");
+                console.error("Virhe:", error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error-message').innerHTML = `<div class="error">Haku epäonnistui: ${error.message}</div>`;
                 showStaticData();
             }
         }
 
-        // Display weather data on the page
-        function displayWeather(temp, humidity, windSpeed, pressure, visibility) {
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("weather-content").style.display = "block";
-            document.getElementById("weather-grid").style.display = "grid";
-
-            // Update main weather display
-            document.getElementById("temperature").textContent = temp + "°C";
-            document.getElementById("weather-condition").textContent = "Partly Cloudy";
-            
-            // Update weather cards
-            document.getElementById("humidity").textContent = humidity + "%";
-            document.getElementById("wind-speed").textContent = windSpeed + " m/s";
-            document.getElementById("pressure").textContent = pressure + " hPa";
-            document.getElementById("visibility").textContent = visibility + " km";
-
-            // Update timestamp
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('fi-FI', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById("update-time").textContent = "Today, " + dateStr;
-        }
-
         // Show static data when API fails
         function showStaticData() {
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("weather-content").style.display = "block";
-            document.getElementById("weather-grid").style.display = "grid";
+            document.getElementById('weather-content').style.display = 'block';
+            document.getElementById('weather-grid').style.display = 'grid';
 
             // Set sample data
-            document.getElementById("temperature").textContent = "17°C";
-            document.getElementById("weather-condition").textContent = "Partly Cloudy";
-            document.getElementById("temp-max").textContent = "19°C";
-            document.getElementById("temp-min").textContent = "12°C";
-            document.getElementById("humidity").textContent = "65%";
-            document.getElementById("wind-speed").textContent = "8 m/s";
-            document.getElementById("wind-direction").textContent = "From West";
-            document.getElementById("pressure").textContent = "1013 hPa";
-            document.getElementById("visibility").textContent = "10 km";
+            document.getElementById('temperature').innerText = "17°C";
+            document.getElementById('weather-condition').innerText = "Partly Cloudy";
+            document.getElementById('temp-max').innerText = "19°C";
+            document.getElementById('temp-min').innerText = "12°C";
+            document.getElementById('humidity').innerText = "65%";
+            document.getElementById('wind-speed').innerText = "8 m/s";
+            document.getElementById('pressure').innerText = "1013 hPa";
+            document.getElementById('visibility').innerText = "10 km";
 
             const now = new Date();
             const dateStr = now.toLocaleDateString('fi-FI', { 
@@ -380,15 +357,7 @@
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            document.getElementById("update-time").textContent = "Today, " + dateStr;
-        }
-
-        // Show error message
-        function showError(message) {
-            const errorDiv = document.getElementById("error-message");
-            errorDiv.className = "error";
-            errorDiv.textContent = message;
-            errorDiv.style.display = "block";
+            document.getElementById('update-time').innerText = "Päivitetty: " + dateStr;
         }
 
         // Load weather data when page loads
