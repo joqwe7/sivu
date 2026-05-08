@@ -3,188 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Simple news website">
+    <meta name="description" content="Today News shares short news stories and live weather for Jyväskylä.">
     <title>Today News</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            line-height: 1.6;
-            color: #000;
-            background-color: #fff;
-        }
-
-        header {
-            background-color: #111;
-            color: #fff;
-            padding: 2rem;
-            border-bottom: 3px solid #000;
-        }
-
-        header h1 {
-            font-size: 2rem;
-            margin-bottom: 0.3rem;
-            font-weight: bold;
-        }
-
-        header p {
-            font-size: 0.9rem;
-            font-weight: normal;
-        }
-
-        nav {
-            background-color: #f0f0f0;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid #ccc;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 2rem;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #000;
-            font-weight: bold;
-            font-size: 0.95rem;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .hero {
-            background: #fff;
-            padding: 1.5rem 0;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid #000;
-        }
-
-        .hero h2 {
-            font-size: 1.5rem;
-            color: #000;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-
-        .hero p {
-            font-size: 0.95rem;
-            color: #000;
-        }
-
-        .news-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .article-card {
-            background: #fff;
-            border: 1px solid #000;
-            padding: 1.5rem;
-            cursor: pointer;
-        }
-
-        .article-card:hover {
-            background-color: #f9f9f9;
-        }
-
-        .article-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.8rem;
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        .article-category {
-            display: inline-block;
-            background-color: #fff;
-            color: #000;
-            border: 1px solid #000;
-            padding: 0.2rem 0.6rem;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        .article-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.8rem;
-            color: #000;
-            line-height: 1.4;
-            font-weight: bold;
-        }
-
-        .article-card p {
-            color: #000;
-            margin-bottom: 1rem;
-            line-height: 1.5;
-            font-size: 0.95rem;
-        }
-
-        .read-more {
-            color: #000;
-            font-weight: bold;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 0.5rem;
-            border: 1px solid #000;
-            padding: 0.4rem 0.8rem;
-        }
-
-        .read-more:hover {
-            background-color: #000;
-            color: #fff;
-        }
-
-        footer {
-            background-color: #f0f0f0;
-            color: #000;
-            padding: 1.5rem;
-            text-align: center;
-            border-top: 1px solid #ccc;
-            margin-top: 2rem;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 1.5rem;
-            }
-
-            nav ul {
-                gap: 1rem;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="main.css">
 </head>
 <body>
-    <header>
-        <h1>New site</h1>
-        <p>Today News and storys</p>
+    <header class="site-header">
+        <h1>Today News</h1>
+        <p>Short news stories and local weather updates.</p>
     </header>
 
-    <nav>
+    <nav class="site-nav" aria-label="Main navigation">
         <ul>
-            <li><a href="#site">Site</a></li>
+            <li><a href="index.html" aria-current="page">Home</a></li>
             <li><a href="#news">News</a></li>
             <li><a href="#games">Games</a></li>
             <li><a href="weather.html">Weather</a></li>
@@ -192,46 +23,61 @@
     </nav>
 
     <main class="container">
-        <section class="hero">
+        <section class="hero" id="site">
             <h2>Welcome</h2>
-            <p>Follow everyday news and watch weather</p>
+            <p>Follow everyday news, school topics, technology stories, and current weather in Jyväskylä.</p>
         </section>
 
-        <section class="news-grid">
-            <article class="article-card">
-                <div class="article-meta">
-                    <span class="article-category">Weather</span>
-                    <time datetime="2026-05-06">6.5.2026</time>
-                </div>
-                <h3>Spring started early in Finland</h3>
-                <p>This year spring came early and migratory birds returned sooner than expected to Finland.</p>
-                <a href="#" class="read-more">Read more</a>
-            </article>
+        <section id="news" aria-labelledby="news-heading">
+            <h2 class="section-heading" id="news-heading">Latest News</h2>
 
-            <article class="article-card">
-                <div class="article-meta">
-                    <span class="article-category">Technology</span>
-                    <time datetime="2026-05-05">5.5.2026</time>
-                </div>
-                <h3>Technology is changing studying</h3>
-                <p>New tools are changing how students learn in schools in Finland.</p>
-                <a href="#" class="read-more">Read more</a>
-            </article>
+            <div class="news-grid">
+                <article class="article-card">
+                    <div class="article-meta">
+                        <span class="article-category">Weather</span>
+                        <time datetime="2026-05-06">6.5.2026</time>
+                    </div>
+                    <h3>Spring started early in Finland</h3>
+                    <p>This year spring arrived early, and migratory birds returned sooner than expected in Finland.</p>
+                    <a href="weather.html" class="read-more">View weather</a>
+                </article>
 
+                <article class="article-card">
+                    <div class="article-meta">
+                        <span class="article-category">Technology</span>
+                        <time datetime="2026-05-05">5.5.2026</time>
+                    </div>
+                    <h3>Technology is changing studying</h3>
+                    <p>New tools are changing how students learn, practice, and complete schoolwork in Finland.</p>
+                    <a href="#technology-story" class="read-more">Read more</a>
+                </article>
+
+                <article class="article-card" id="technology-story">
+                    <div class="article-meta">
+                        <span class="article-category">School</span>
+                        <time datetime="2026-05-04">4.5.2026</time>
+                    </div>
+                    <h3>Students prepare for the end of spring term</h3>
+                    <p>Schools are getting ready for final projects, exams, and summer events before the holiday starts.</p>
+                    <a href="#news" class="read-more">Back to news</a>
+                </article>
+            </div>
+        </section>
+
+        <section id="games" aria-labelledby="games-heading">
+            <h2 class="section-heading" id="games-heading">Games</h2>
             <article class="article-card">
                 <div class="article-meta">
-                    <span class="article-category">jotai</span>
-                    <time datetime="2026-05-04">4.5.2026</time>
+                    <span class="article-category">Coming Soon</span>
                 </div>
-                <h3></h3>
-                <p></p>
-                <a href="#" class="read-more"></a>
+                <h3>Games section is being planned</h3>
+                <p>This section can later include small browser games, score tables, or game news.</p>
             </article>
         </section>
     </main>
 
-    <footer>
-        <p>&copy; 2026 News site. Made by joona.</p>
+    <footer class="site-footer">
+        <p>&copy; 2026 Today News. Made by Joona.</p>
     </footer>
 </body>
 </html>
