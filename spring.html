@@ -4,159 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spring Arrives Early in Finland - News Article</title>
+    <link rel="stylesheet" href="main.css?v=2">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .article-full {
+            background: #fff;
+            border: 1px solid #000;
+            padding: 2rem;
+            margin-bottom: 2rem;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        .article-full h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #000;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }
-
-        header {
-            background: linear-gradient(135deg, #2d5016 0%, #558b2f 100%);
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .article-meta {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.95em;
-            margin-bottom: 10px;
-        }
-
-        .article-date {
-            font-size: 0.85em;
-            opacity: 0.9;
-        }
-
-        .article-content {
-            padding: 40px;
-        }
-
-        .article-content p {
-            font-size: 1.1em;
-            line-height: 1.8;
-            color: #333;
-            margin-bottom: 20px;
+        .article-full p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #000;
+            margin-bottom: 1rem;
             text-align: justify;
         }
 
-        .article-content p:first-letter {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #558b2f;
-        }
-
-        .highlight {
-            background: #fff9e6;
-            padding: 20px;
-            border-left: 4px solid #558b2f;
-            margin: 25px 0;
-            border-radius: 4px;
-            font-style: italic;
-            color: #555;
-        }
-
         .bird-section {
-            background: #f0f7f0;
-            padding: 20px;
-            margin: 25px 0;
-            border-radius: 6px;
+            background: #f5f5f5;
+            border: 1px solid #000;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
         }
 
-        .bird-section h2 {
-            color: #2d5016;
-            font-size: 1.5em;
-            margin-bottom: 15px;
+        .bird-section h3 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #000;
         }
 
         .bird-list {
             list-style: none;
-            padding-left: 20px;
+            padding-left: 1.5rem;
         }
 
         .bird-list li {
-            padding: 8px 0;
-            color: #444;
-            font-size: 1em;
+            padding: 0.5rem 0;
+            color: #000;
+            font-size: 0.95rem;
         }
 
         .bird-list li:before {
             content: "🐦 ";
-            margin-right: 10px;
-        }
-
-        .footer {
-            background: #f5f5f5;
-            padding: 20px;
-            text-align: center;
-            color: #777;
-            font-size: 0.9em;
-            border-top: 1px solid #eee;
-        }
-
-        @media (max-width: 600px) {
-            header h1 {
-                font-size: 1.8em;
-            }
-
-            .article-content {
-                padding: 20px;
-            }
-
-            .article-content p {
-                font-size: 1em;
-            }
+            margin-right: 0.5rem;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🌱 Spring Arrives Early in Finland</h1>
-            <div class="article-meta">
-                <div class="article-date">Published: May 13, 2026</div>
-                <div>News Article</div>
-            </div>
-        </header>
+    <header class="site-header">
+        <h1>Today News</h1>
+        <p>Short news and weather updates.</p>
+    </header>
 
-        <div class="article-content">
+    <nav class="site-nav" aria-label="Main navigation">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#news">News</a></li>
+            <li><a href="index.html#games">Games</a></li>
+            <li><a href="weather.html">Weather</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <a href="index.html#news" class="back-link">← Back to news</a>
+
+        <article class="article-full">
+            <h2>🌱 Spring Arrives Early in Finland</h2>
+
             <p>
-                In a notable shift from typical seasonal patterns, spring has arrived significantly earlier than usual across Finland this year. The early arrival of warmer weather has triggered an unexpected seasonal transformation, bringing migratory birds back to their northern nesting grounds much sooner than meteorologists and ornithologists had anticipated.
+                In a notable shift from typical seasonal patterns, spring has arrived significantly earlier than usual across Finland this year. This year spring came early and migratory birds returned sooner than expected to Finland. The early arrival of warmer weather has triggered widespread ecological changes and increased activity in natural habitats across the country.
             </p>
 
-            <div class="highlight">
-                "This early spring represents a remarkable departure from historical norms, with temperatures rising 3-5 degrees Celsius above the long-term average for this time of year," reported the Finnish Meteorological Institute.
-            </div>
+            <p>
+                "This early spring represents a remarkable departure from historical norms, with temperatures rising 3-5 degrees Celsius above the long-term average for this time of year," reported environmental experts monitoring the situation.
+            </p>
 
             <p>
-                Environmental researchers attribute this phenomenon to broader climate patterns affecting the Nordic region. The unusually warm winter months, combined with an early thaw of ice and snow, have created ideal conditions for migratory species to begin their journey northward weeks ahead of schedule.
+                Environmental researchers attribute this phenomenon to broader climate patterns affecting the Nordic region. The unusually warm winter months, combined with an early thaw of ice and snow, have created optimal conditions for the return of migratory species and the awakening of the natural landscape.
             </p>
 
             <div class="bird-section">
-                <h2>Migratory Birds Return Early</h2>
+                <h3>Migratory Birds Return Early</h3>
                 <p>
                     Ornithologists have documented the arrival of numerous bird species that typically don't reach Finnish territories until late spring. Species spotted include:
                 </p>
@@ -171,25 +108,25 @@
             </div>
 
             <p>
-                Local birdwatchers and nature enthusiasts have expressed excitement about the early return of these species, with many already documenting sightings across the country. National parks and nature reserves have seen increased visitor activity as people rush to observe these returning birds in their natural habitats.
+                Local birdwatchers and nature enthusiasts have expressed excitement about the early return of these species, with many already documenting sightings across the country. National parks and nature reserves have reported increased visitor activity as people take advantage of the opportunity to observe these birds earlier than usual.
             </p>
 
             <p>
-                While the early spring brings opportunities for wildlife observation, researchers caution that such dramatic shifts in seasonal timing could have ecological implications. The earlier availability of nesting sites and food sources may impact breeding patterns, and a potential late frost could pose risks to early-arriving species.
+                While the early spring brings opportunities for wildlife observation, researchers caution that such dramatic shifts in seasonal timing could have ecological implications. The earlier arrival of migratory birds may affect food availability and breeding patterns, which could impact populations in the long term.
             </p>
 
             <p>
-                Environmental organizations are closely monitoring the situation to better understand the long-term effects of climate change on Finland's ecosystems. The Finnish Wildlife Agency has encouraged citizens to report bird sightings to contribute valuable data to ongoing research initiatives.
+                Environmental organizations are closely monitoring the situation to better understand the long-term effects of climate change on Finland's ecosystems. The Finnish Wildlife Agency has established protocols to track species movements and assess any potential impacts on the delicate balance of nature.
             </p>
 
             <p>
-                As spring continues to unfold across Finland, both residents and scientists will be watching closely to see how this early seasonal shift ultimately affects the country's delicate natural balance and biodiversity throughout the year.
+                As spring continues to unfold across Finland, both residents and scientists will be watching closely to see how this early seasonal shift ultimately affects the country's delicate natural environment and wildlife populations.
             </p>
-        </div>
+        </article>
+    </main>
 
-        <footer class="footer">
-            <p>&copy; 2026 Finland News Agency. All rights reserved.</p>
-        </footer>
-    </div>
+    <footer class="site-footer">
+        <p>&copy; 2026 Today News. Made by Joona.</p>
+    </footer>
 </body>
 </html>
