@@ -1,0 +1,1055 @@
+html = r'''<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Minimal Word Connect game with rotating letter sets and Dreamlo leaderboard." />
+  <title>Word Connect</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/dreamlo.js@1.3.2/dist/dreamlo.min.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#fff;
+      --ink:#111;
+      --muted:#606060;
+      --line:#111;
+      --soft:#ddd;
+      --panel:#fbfbfb;
+      --shadow: rgba(0,0,0,.08);
+      --ring: rgba(0,0,0,.14);
+    }
+    *{ box-sizing:border-box; }
+    html,body{
+      margin:0;
+      padding:0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.98)),
+        repeating-linear-gradient(0deg, #f8f8f8 0 28px, #f1f1f1 28px 56px);
+      color:var(--ink);
+      font-family:"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    body{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    .site-header{
+      max-width:1200px;
+      width:100%;
+      margin:0 auto;
+      padding:1.15rem 1rem 1rem;
+      border-bottom:2px solid var(--line);
+    }
+    .masthead{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:1rem;
+      flex-wrap:wrap;
+    }
+    .brand h1{
+      margin:0;
+      font-family:"Source Serif 4", Georgia, serif;
+      font-size:clamp(2.2rem, 6vw, 4.2rem);
+      line-height:1;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      font-weight:700;
+    }
+    .brand p{
+      margin:.35rem 0 0;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+    .header-meta{
+      text-align:right;
+      color:var(--muted);
+      font-size:.82rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      line-height:1.5;
+      white-space:nowrap;
+    }
+    main{
+      width:100%;
+      max-width:1200px;
+      margin:0 auto;
+      padding:1rem;
+      flex:1;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1.02fr 1.28fr .9fr;
+      gap:1rem;
+      align-items:start;
+    }
+    .panel{
+      background:rgba(255,255,255,.84);
+      border:1px solid var(--line);
+      box-shadow:0 10px 24px var(--shadow);
+      padding:1rem;
+    }
+    .panel h2{
+      margin:0 0 .8rem;
+      font-size:.9rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+    }
+    .lead{
+      font-family:"Source Serif 4", Georgia, serif;
+      font-size:clamp(1.25rem, 2.2vw, 1.8rem);
+      line-height:1.15;
+      margin:0 0 .55rem;
+    }
+    .subtle{
+      color:var(--muted);
+      font-size:.95rem;
+      line-height:1.55;
+      margin:0;
+    }
+    .start-zone{
+      display:flex;
+      gap:.65rem;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:.95rem;
+    }
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+      padding:.68rem .95rem;
+      font:inherit;
+      font-size:.84rem;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      cursor:pointer;
+      transition:transform .12s ease, background .12s ease, color .12s ease;
+    }
+    .btn:hover{ transform:translateY(-1px); }
+    .btn.primary{
+      background:#111;
+      color:#fff;
+    }
+    .btn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:.75rem;
+      margin-top:1rem;
+    }
+    .stat{
+      border:1px solid var(--line);
+      background:var(--panel);
+      padding:.8rem .7rem;
+      text-align:center;
+    }
+    .stat .label{
+      display:block;
+      font-size:.76rem;
+      color:var(--muted);
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+    .stat .value{
+      display:block;
+      margin-top:.22rem;
+      font-size:1.6rem;
+      line-height:1;
+      font-weight:800;
+    }
+    .timer{
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      border:1px solid var(--line);
+      background:#fff;
+      padding:.55rem .7rem;
+      font-size:.9rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      margin-top:.75rem;
+    }
+    .timer strong{ font-size:1.05rem; }
+    .message{
+      border-top:1px solid var(--soft);
+      margin-top:1rem;
+      padding-top:.8rem;
+      min-height:3.4rem;
+      font-size:.98rem;
+      line-height:1.55;
+    }
+    .message .muted{ color:var(--muted); }
+    .found-row{
+      margin-top:.95rem;
+      border-top:1px solid var(--soft);
+      padding-top:.85rem;
+    }
+    .found-row h3, .leaderboard h3{
+      margin:0 0 .55rem;
+      font-size:.82rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+    }
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.45rem;
+      min-height:2rem;
+    }
+    .chip{
+      border:1px solid var(--line);
+      padding:.34rem .55rem;
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      background:#fff;
+    }
+    .puzzle-board{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,248,248,.96));
+      box-shadow:0 10px 24px var(--shadow);
+      padding:1rem;
+    }
+    .board-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:1rem;
+      flex-wrap:wrap;
+      margin-bottom:.8rem;
+    }
+    .board-head h2{
+      margin:0;
+      font-size:.9rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+    }
+    .board-head p{
+      margin:0;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+    .board{
+      position:relative;
+      height:min(64vw, 520px);
+      min-height:340px;
+      max-height:560px;
+      border-top:1px solid var(--soft);
+      border-bottom:1px solid var(--soft);
+      overflow:hidden;
+      user-select:none;
+      -webkit-user-select:none;
+      -webkit-touch-callout:none;
+      touch-action:none;
+      background:
+        radial-gradient(circle at center, rgba(0,0,0,.02) 0 1px, transparent 1px) 0 0 / 20px 20px;
+    }
+    #linkLayer{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+    }
+    .letters-layer{
+      position:absolute;
+      inset:0;
+    }
+    .letter{
+      position:absolute;
+      width:clamp(3.55rem, 8vw, 5.2rem);
+      height:clamp(3.55rem, 8vw, 5.2rem);
+      border:2px solid var(--line);
+      border-radius:50%;
+      transform:translate(-50%, -50%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:var(--panel);
+      box-shadow:0 8px 18px rgba(0,0,0,.09);
+      font-size:clamp(1.1rem, 2.4vw, 1.55rem);
+      font-weight:800;
+      letter-spacing:.07em;
+      text-transform:uppercase;
+    }
+    .letter.active{
+      background:#111;
+      color:#fff;
+    }
+    .letter.locked{
+      background:#111;
+      color:#fff;
+    }
+    .leaderboard{
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+    }
+    .score-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.92rem;
+    }
+    .score-table th,
+    .score-table td{
+      border-bottom:1px solid var(--soft);
+      padding:.55rem .25rem;
+      text-align:left;
+      vertical-align:top;
+    }
+    .score-table th{
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      font-size:.75rem;
+      font-weight:700;
+    }
+    .score-table td.num,
+    .score-table th.num{
+      text-align:right;
+      white-space:nowrap;
+    }
+    .score-empty{
+      color:var(--muted);
+      font-size:.92rem;
+      padding:.35rem 0 .1rem;
+    }
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(255,255,255,.96);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:1rem;
+      z-index:50;
+    }
+    .overlay.hidden{ display:none; }
+    .modal{
+      width:min(520px, 100%);
+      border:1px solid var(--line);
+      box-shadow:0 20px 50px rgba(0,0,0,.14);
+      background:#fff;
+      padding:1.2rem;
+    }
+    .modal h2{
+      margin:0 0 .55rem;
+      font-family:"Source Serif 4", Georgia, serif;
+      font-size:1.8rem;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+    .modal p{
+      margin:.1rem 0 1rem;
+      color:var(--muted);
+      line-height:1.5;
+    }
+    .name-row{
+      display:flex;
+      gap:.6rem;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .name-row input{
+      flex:1 1 220px;
+      border:1px solid var(--line);
+      padding:.75rem .8rem;
+      font:inherit;
+      outline:none;
+    }
+    .name-row input:focus{
+      box-shadow:0 0 0 4px var(--ring);
+    }
+    .footer-note{
+      max-width:1200px;
+      width:100%;
+      margin:0 auto;
+      padding:0 1rem 1rem;
+      color:var(--muted);
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.09em;
+      border-top:1px solid var(--line);
+      padding-top:.75rem;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns:1fr; }
+      .leaderboard{ order:3; }
+    }
+    @media (max-width: 640px){
+      main{ padding:.75rem; }
+      .panel, .puzzle-board{ padding:.85rem; }
+      .stats{ grid-template-columns:1fr; }
+      .board{ height:min(78vw, 470px); min-height:300px; }
+      .header-meta{ text-align:left; white-space:normal; }
+      .score-table{ font-size:.85rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="nameOverlay" aria-modal="true" role="dialog" aria-labelledby="modalTitle">
+    <div class="modal">
+      <h2 id="modalTitle">Enter nickname</h2>
+      <p>Your score will be saved to the leaderboard under this name.</p>
+      <div class="name-row">
+        <input id="nameInput" type="text" maxlength="18" placeholder="Nickname" autocomplete="nickname" />
+        <button class="btn primary" id="beginBtn" type="button">Start game</button>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="masthead">
+      <div class="brand">
+        <h1>Word Connect</h1>
+        <p>100-second session, new letters every 20 seconds, Dreamlo leaderboard.</p>
+      </div>
+      <div class="header-meta">
+        <div>GitHub Pages ready</div>
+        <div>Mouse + touch drag</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <section class="panel" aria-labelledby="info-heading">
+        <h2 id="info-heading">Game</h2>
+        <p class="lead" id="levelTitle">Press Start to begin</p>
+        <p class="subtle" id="levelHint">Letters rotate automatically every 20 seconds from a hidden puzzle table.</p>
+
+        <div class="timer" aria-live="polite">
+          Time left: <strong id="timeLeft">100</strong>s
+        </div>
+
+        <div class="stats" aria-label="Stats">
+          <div class="stat">
+            <span class="label">Score</span>
+            <span class="value" id="scoreValue">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Found</span>
+            <span class="value" id="foundCount">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Left</span>
+            <span class="value" id="leftCount">0</span>
+          </div>
+        </div>
+
+        <div class="start-zone">
+          <button class="btn primary" id="startBtn" type="button" disabled>Start</button>
+          <button class="btn" id="nextRoundBtn" type="button" disabled>Next letters</button>
+        </div>
+
+        <div class="message" id="message" aria-live="polite">
+          <span class="muted">Enter a nickname to begin.</span>
+        </div>
+
+        <div class="found-row">
+          <h3>Found words</h3>
+          <div class="chips" id="foundWords"></div>
+        </div>
+      </section>
+
+      <section class="puzzle-board">
+        <div class="board-head">
+          <div>
+            <h2>Letters</h2>
+            <p>Drag across the circles with mouse or finger.</p>
+          </div>
+        </div>
+
+        <div class="board" id="board" aria-label="Letter board">
+          <svg id="linkLayer" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+            <polyline id="pathLine" points="" fill="none" stroke="#111111" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          </svg>
+          <div class="letters-layer" id="lettersLayer"></div>
+        </div>
+      </section>
+
+      <aside class="panel leaderboard" aria-labelledby="leaderboard-heading">
+        <h2 id="leaderboard-heading">Leaderboard</h2>
+        <div class="subtle">Dreamlo GET leaderboard. Top 10 scores.</div>
+        <div class="score-empty" id="leaderboardStatus">Waiting to load.</div>
+
+        <table class="score-table" aria-describedby="leaderboard-heading">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th class="num">Score</th>
+              <th class="num">Time</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody">
+            <tr><td colspan="4" class="score-empty">Enter a nickname and press Start.</td></tr>
+          </tbody>
+        </table>
+      </aside>
+    </div>
+  </main>
+
+  <div class="footer-note">Minimal word game with rotating letter sets.</div>
+
+  <script>
+    (() => {
+      const DREAMLO_PUBLIC = "5fa8af5feb371a09c4c51d17";
+      const DREAMLO_PRIVATE = "cgpr101Ep0yMn0IZPhMAqwVghoK20BG06c_rPh-i1Npg";
+      const TOTAL_SECONDS = 100;
+      const ROUND_SECONDS = 20;
+      const ROUND_COUNT = TOTAL_SECONDS / ROUND_SECONDS;
+
+      const puzzles = [
+        { letters: ["S","A","L","E","S"], words: ["SALE","SEAL","LESS","ELSE","SEAS"] },
+        { letters: ["S","T","O","N","E"], words: ["STONE","TONE","NOTE","ONES","SENT"] },
+        { letters: ["C","A","R","E","S"], words: ["CARE","RACE","ACRE","SCARE","CARES"] },
+        { letters: ["P","L","A","N","T"], words: ["PLAN","PANT","PLANT","TAN","TAP"] },
+        { letters: ["G","R","A","S","P"], words: ["GASP","SPAR","RAGS","GRASP"] },
+        { letters: ["M","A","R","K","E"], words: ["MARK","MAKE","RAKE","MARE"] },
+        { letters: ["B","R","I","G","H"], words: ["BRIG","GRIB","RIB","BIG","BRIGHT"] },
+        { letters: ["L","A","S","T","I"], words: ["LAST","SALT","TAIL","LIST","SLAT"] },
+        { letters: ["F","O","R","M","E"], words: ["FORM","MORE","FORE","FROM","ROME"] }
+      ];
+
+      const $ = (id) => document.getElementById(id);
+
+      const overlay = $("nameOverlay");
+      const nameInput = $("nameInput");
+      const beginBtn = $("beginBtn");
+      const startBtn = $("startBtn");
+      const nextRoundBtn = $("nextRoundBtn");
+      const board = $("board");
+      const lettersLayer = $("lettersLayer");
+      const pathLine = $("pathLine");
+      const messageEl = $("message");
+      const levelTitleEl = $("levelTitle");
+      const levelHintEl = $("levelHint");
+      const timeLeftEl = $("timeLeft");
+      const scoreValueEl = $("scoreValue");
+      const foundCountEl = $("foundCount");
+      const leftCountEl = $("leftCount");
+      const foundWordsEl = $("foundWords");
+      const leaderboardBody = $("leaderboardBody");
+      const leaderboardStatus = $("leaderboardStatus");
+
+      const state = {
+        nickname: "",
+        puzzle: null,
+        letters: [],
+        selected: [],
+        selectedIndices: new Set(),
+        found: new Set(),
+        score: 0,
+        remainingSeconds: TOTAL_SECONDS,
+        timerId: null,
+        started: false,
+        gameOver: false,
+        scoreSent: false,
+        wordCache: new Map(),
+        pointerActive: false,
+        currentRound: 0,
+        sessionId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      };
+
+      if (window.dreamlo) {
+        dreamlo.initialize(DREAMLO_PUBLIC, DREAMLO_PRIVATE, true);
+      }
+
+      const savedName = localStorage.getItem("word-connect-name");
+      if (savedName) nameInput.value = savedName;
+
+      function setMessage(html) {
+        messageEl.innerHTML = html;
+      }
+
+      function updateCounters() {
+        scoreValueEl.textContent = state.score;
+        foundCountEl.textContent = state.found.size;
+        leftCountEl.textContent = Math.max(0, state.puzzle ? state.puzzle.words.length - state.found.size : 0);
+        timeLeftEl.textContent = state.remainingSeconds;
+      }
+
+      function choosePuzzle() {
+        return puzzles[Math.floor(Math.random() * puzzles.length)];
+      }
+
+      function clearPath() {
+        pathLine.setAttribute("points", "");
+      }
+
+      function scalePoint(point) {
+        return {
+          x: point.x / board.clientWidth * 1000,
+          y: point.y / board.clientHeight * 1000
+        };
+      }
+
+      function pointFromEvent(e) {
+        const rect = board.getBoundingClientRect();
+        const source = e.touches && e.touches[0] ? e.touches[0] : e.changedTouches && e.changedTouches[0] ? e.changedTouches[0] : e;
+        return { x: source.clientX - rect.left, y: source.clientY - rect.top };
+      }
+
+      function letterAtPoint(point) {
+        for (let i = 0; i < state.letters.length; i++) {
+          const item = state.letters[i];
+          const dx = point.x - item.center.x;
+          const dy = point.y - item.center.y;
+          const radius = Math.min(item.el.offsetWidth, item.el.offsetHeight) / 2;
+          if (Math.sqrt(dx * dx + dy * dy) <= radius) return i;
+        }
+        return -1;
+      }
+
+      function positionLetters() {
+        const rect = board.getBoundingClientRect();
+        state.letters.forEach(item => {
+          item.center = {
+            x: rect.width * item.xPct / 100,
+            y: rect.height * item.yPct / 100
+          };
+          item.el.style.left = `${item.xPct}%`;
+          item.el.style.top = `${item.yPct}%`;
+        });
+      }
+
+      function renderPuzzle() {
+        lettersLayer.innerHTML = "";
+        state.letters = [];
+        const positions = [
+          { x: 50, y: 20 },
+          { x: 77, y: 40 },
+          { x: 68, y: 72 },
+          { x: 32, y: 72 },
+          { x: 23, y: 40 }
+        ];
+
+        state.puzzle.letters.forEach((letter, index) => {
+          const el = document.createElement("div");
+          el.className = "letter";
+          el.textContent = letter;
+          lettersLayer.appendChild(el);
+          state.letters.push({
+            el,
+            letter,
+            xPct: positions[index].x,
+            yPct: positions[index].y,
+            center: { x: 0, y: 0 }
+          });
+        });
+
+        positionLetters();
+      }
+
+      function resetSelection(keepPrompt = true) {
+        state.selected = [];
+        state.selectedIndices.clear();
+        state.letters.forEach(letter => letter.el.classList.remove("active"));
+        clearPath();
+        if (keepPrompt && state.started && !state.gameOver) {
+          setMessage('<span class="muted">Drag letters together to form a word.</span>');
+        }
+      }
+
+      function setPathToPointer(point) {
+        const pts = state.selected.map(s => `${s.x},${s.y}`);
+        if (point) pts.push(`${point.x},${point.y}`);
+        pathLine.setAttribute("points", pts.join(" "));
+      }
+
+      function addSelectedIndex(index) {
+        if (index < 0 || state.selectedIndices.has(index)) return;
+        const item = state.letters[index];
+        state.selected.push({
+          index,
+          letter: item.letter,
+          x: scalePoint(item.center).x,
+          y: scalePoint(item.center).y
+        });
+        state.selectedIndices.add(index);
+        item.el.classList.add("active");
+      }
+
+      function updateDrag(point) {
+        if (!state.pointerActive || state.gameOver || !state.started) return;
+        const idx = letterAtPoint(point);
+        if (idx !== -1) addSelectedIndex(idx);
+        setPathToPointer(scalePoint(point));
+      }
+
+      function normalizeWord(word) {
+        return word.toUpperCase().trim();
+      }
+
+      function canBuildFromLetters(word) {
+        const counts = new Map();
+        for (const ch of state.puzzle.letters) counts.set(ch, (counts.get(ch) || 0) + 1);
+        for (const ch of word) {
+          const left = counts.get(ch) || 0;
+          if (!left) return false;
+          counts.set(ch, left - 1);
+        }
+        return true;
+      }
+
+      async function isValidDictionaryWord(word) {
+        const key = word.toLowerCase();
+        if (state.wordCache.has(key)) return state.wordCache.get(key);
+        try {
+          const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`);
+          const ok = res.ok;
+          state.wordCache.set(key, ok);
+          return ok;
+        } catch {
+          state.wordCache.set(key, false);
+          return false;
+        }
+      }
+
+      function addFoundChip(word) {
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        chip.textContent = word;
+        foundWordsEl.appendChild(chip);
+      }
+
+      function fillWord(word) {
+        const chip = foundWordsEl.querySelector(`[data-word="${word}"]`);
+        if (chip) return;
+
+        const row = document.createElement("div");
+        row.className = "chip";
+        row.dataset.word = word;
+        row.textContent = word;
+        foundWordsEl.appendChild(row);
+      }
+
+      function fillBlackBoardWord(word) {
+        const row = document.querySelector(`.target-word[data-word="${word}"]`);
+        if (!row) return;
+        row.querySelectorAll(".box").forEach((box, index) => {
+          box.textContent = word[index];
+          box.classList.add("filled");
+        });
+      }
+
+      function hideFoundListIfEmpty() {
+        if (!foundWordsEl.children.length) {
+          foundWordsEl.innerHTML = "";
+        }
+      }
+
+      function setRoundRoundTitle() {
+        const roundNumber = state.currentRound + 1;
+        levelTitleEl.textContent = `Round ${roundNumber} of ${ROUND_COUNT}`;
+        levelHintEl.textContent = `A new letter set appears every ${ROUND_SECONDS} seconds. Find any valid words that fit the current letters.`;
+      }
+
+      function startRound() {
+        state.puzzle = choosePuzzle();
+        state.found = new Set();
+        state.wordCache = new Map();
+        state.currentRound += 1;
+
+        renderPuzzle();
+        resetSelection(false);
+        foundWordsEl.innerHTML = "";
+        updateCounters();
+        setRoundRoundTitle();
+      }
+
+      function stopTimer() {
+        if (state.timerId) {
+          clearInterval(state.timerId);
+          state.timerId = null;
+        }
+      }
+
+      function roundBoundary() {
+        const shouldRotate = state.started && !state.gameOver && state.remainingSeconds > 0 && state.remainingSeconds % ROUND_SECONDS === 0;
+        if (shouldRotate && state.remainingSeconds !== TOTAL_SECONDS) {
+          startRound();
+          setMessage('<span class="muted">New letters loaded.</span>');
+        }
+      }
+
+      function startTimer() {
+        stopTimer();
+        state.timerId = window.setInterval(() => {
+          if (state.gameOver || !state.started) return;
+          state.remainingSeconds -= 1;
+          if (state.remainingSeconds < 0) state.remainingSeconds = 0;
+          updateCounters();
+          if (state.remainingSeconds > 0 && state.remainingSeconds % ROUND_SECONDS === 0 && state.remainingSeconds !== TOTAL_SECONDS) {
+            startRound();
+            setMessage('<span class="muted">New letters loaded.</span>');
+          }
+          if (state.remainingSeconds <= 0) {
+            endGame("Time is up.");
+          }
+        }, 1000);
+      }
+
+      function endGame(reason) {
+        if (state.gameOver) return;
+        state.gameOver = true;
+        state.pointerActive = false;
+        stopTimer();
+
+        const bonus = Math.max(0, state.remainingSeconds * 5);
+        if (bonus) {
+          state.score += bonus;
+          updateCounters();
+        }
+
+        resetSelection(false);
+        setMessage(`<strong>${reason}</strong> Final score: <strong>${state.score}</strong>.`);
+        saveScoreToLeaderboard();
+      }
+
+      function finishSelection() {
+        if (!state.pointerActive || !state.started || state.gameOver) return;
+        state.pointerActive = false;
+
+        const word = normalizeWord(state.selected.map(item => item.letter).join(""));
+        if (!word) {
+          resetSelection();
+          return;
+        }
+
+        if (state.found.has(word)) {
+          setMessage(`"<strong>${word}</strong>" was already found.`);
+          window.setTimeout(() => resetSelection(), 350);
+          return;
+        }
+
+        Promise.resolve(isValidDictionaryWord(word)).then(isDictionaryWord => {
+          if (!isDictionaryWord) {
+            setMessage(`"<strong>${word}</strong>" was not found in the dictionary.`);
+            window.setTimeout(() => resetSelection(), 350);
+            return;
+          }
+
+          if (!canBuildFromLetters(word)) {
+            setMessage(`"<strong>${word}</strong>" cannot be formed from these letters.`);
+            window.setTimeout(() => resetSelection(), 350);
+            return;
+          }
+
+          if (!state.puzzle.words.includes(word)) {
+            setMessage(`"<strong>${word}</strong>" is not in this round.`);
+            window.setTimeout(() => resetSelection(), 350);
+            return;
+          }
+
+          state.found.add(word);
+          const points = word.length * 10;
+          state.score += points;
+          fillBlackBoardWord(word);
+          fillWord(word);
+          updateCounters();
+          setMessage(`Good! <strong>${word}</strong> +${points} points.`);
+          resetSelection(false);
+
+          if (state.found.size === state.puzzle.words.length) {
+            setMessage(`Round complete. <strong>${word}</strong> was accepted. New letters will continue to rotate until time runs out.`);
+          }
+        });
+      }
+
+      function attachBoardEvents() {
+        board.addEventListener("mousedown", e => {
+          if (!state.started || state.gameOver || e.button !== 0) return;
+          const point = pointFromEvent(e);
+          const idx = letterAtPoint(point);
+          if (idx === -1) return;
+          e.preventDefault();
+          state.pointerActive = true;
+          state.selected = [];
+          state.selectedIndices.clear();
+          clearPath();
+          addSelectedIndex(idx);
+          updateDrag(point);
+        });
+
+        window.addEventListener("mousemove", e => {
+          if (!state.pointerActive || state.gameOver) return;
+          e.preventDefault();
+          updateDrag(pointFromEvent(e));
+        });
+
+        window.addEventListener("mouseup", finishSelection);
+
+        board.addEventListener("touchstart", e => {
+          if (!state.started || state.gameOver) return;
+          const point = pointFromEvent(e);
+          const idx = letterAtPoint(point);
+          if (idx === -1) return;
+          e.preventDefault();
+          state.pointerActive = true;
+          state.selected = [];
+          state.selectedIndices.clear();
+          clearPath();
+          addSelectedIndex(idx);
+          updateDrag(point);
+        }, { passive:false });
+
+        window.addEventListener("touchmove", e => {
+          if (!state.pointerActive || state.gameOver) return;
+          e.preventDefault();
+          updateDrag(pointFromEvent(e));
+        }, { passive:false });
+
+        window.addEventListener("touchend", finishSelection, { passive:false });
+        window.addEventListener("touchcancel", finishSelection, { passive:false });
+
+        window.addEventListener("resize", () => {
+          positionLetters();
+          if (state.selected.length) {
+            const pts = state.selected.map(s => `${s.x},${s.y}`);
+            pathLine.setAttribute("points", pts.join(" "));
+          }
+        });
+
+        document.addEventListener("contextmenu", e => e.preventDefault());
+      }
+
+      function renderLeaderboard(rows) {
+        leaderboardBody.innerHTML = "";
+        if (!rows || !rows.length) {
+          leaderboardStatus.textContent = "No scores yet.";
+          leaderboardBody.innerHTML = '<tr><td colspan="4" class="score-empty">No scores yet.</td></tr>';
+          return;
+        }
+
+        leaderboardStatus.textContent = `${rows.length} entries loaded.`;
+        rows.slice(0, 10).forEach((entry, idx) => {
+          const tr = document.createElement("tr");
+          const rawName = (entry.text && String(entry.text).trim()) ? String(entry.text).trim() : String(entry.name || "Anon");
+          tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${escapeHtml(rawName)}</td>
+            <td class="num">${Number(entry.score ?? 0)}</td>
+            <td class="num">${Number(entry.seconds ?? 0)}s</td>
+          `;
+          leaderboardBody.appendChild(tr);
+        });
+      }
+
+      function escapeHtml(text) {
+        return String(text)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      async function loadLeaderboard() {
+        if (!window.dreamlo) {
+          leaderboardStatus.textContent = "Dreamlo did not load.";
+          leaderboardBody.innerHTML = '<tr><td colspan="4" class="score-empty">Dreamlo did not load.</td></tr>';
+          return;
+        }
+
+        try {
+          leaderboardStatus.textContent = "Loading…";
+          const scores = await dreamlo.getScores(dreamlo.ScoreFormat.Object, dreamlo.SortOrder.PointsDescending, 0, 10);
+          renderLeaderboard(Array.isArray(scores) ? scores : []);
+        } catch (err) {
+          console.error(err);
+          leaderboardStatus.textContent = "Leaderboard load failed.";
+          leaderboardBody.innerHTML = '<tr><td colspan="4" class="score-empty">Leaderboard load failed.</td></tr>';
+        }
+      }
+
+      async function saveScoreToLeaderboard() {
+        if (state.scoreSent || !window.dreamlo) return;
+        const name = (state.nickname || localStorage.getItem("word-connect-name") || "Anon").trim() || "Anon";
+        const uniqueName = `${name}-${state.sessionId}`;
+
+        try {
+          state.scoreSent = true;
+          await dreamlo.addScore(
+            {
+              name: uniqueName,
+              points: state.score,
+              seconds: Math.max(0, TOTAL_SECONDS - state.remainingSeconds),
+              text: name
+            },
+            dreamlo.ScoreFormat.Object,
+            dreamlo.SortOrder.PointsDescending,
+            false
+          );
+          await loadLeaderboard();
+        } catch (err) {
+          console.error(err);
+          state.scoreSent = false;
+          leaderboardStatus.textContent = "Saving score failed.";
+        }
+      }
+
+      function startGame() {
+        state.nickname = nameInput.value.trim();
+        localStorage.setItem("word-connect-name", state.nickname);
+        overlay.classList.add("hidden");
+        startBtn.disabled = false;
+        nextRoundBtn.disabled = false;
+
+        state.started = true;
+        state.gameOver = false;
+        state.scoreSent = false;
+        state.score = 0;
+        state.remainingSeconds = TOTAL_SECONDS;
+        state.currentRound = 0;
+        state.sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        state.wordCache = new Map();
+        foundWordsEl.innerHTML = "";
+        updateCounters();
+        setRoundRoundTitle();
+        startRound();
+        setMessage('<span class="muted">Drag letters together and release to check the word.</span>');
+        startTimer();
+        loadLeaderboard();
+      }
+
+      function nextLetters() {
+        if (!state.started || state.gameOver) return;
+        startRound();
+        setMessage('<span class="muted">New letters loaded manually.</span>');
+      }
+
+      beginBtn.addEventListener("click", startGame);
+      startBtn.addEventListener("click", startGame);
+      nextRoundBtn.addEventListener("click", nextLetters);
+
+      nameInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") startGame();
+      });
+
+      attachBoardEvents();
+      updateCounters();
+      setMessage('<span class="muted">Enter a nickname to begin.</span>');
+      loadLeaderboard();
+    })();
+  </script>
+</body>
+</html>'''
+path = "/mnt/data/word-connect-english-100s.html"
+with open(path, "w", encoding="utf-8") as f:
+    f.write(html)
+path
